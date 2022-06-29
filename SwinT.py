@@ -639,7 +639,7 @@ class SwinTransformer(TheseusLayer):
                  img_size=224,
                  patch_size=4,
                  in_chans=3,
-                 class_num=1000,
+                 class_num=2,
                  embed_dim=96,
                  depths=[2, 2, 6, 2],
                  num_heads=[3, 6, 12, 24],
@@ -765,6 +765,17 @@ def swin_tiny(**kwargs):
         num_heads=[3, 6, 12, 24],
         window_size=7,
         drop_path_rate=0.2,
+        **kwargs)
+    return model
+
+
+def SwinTransformer_base_patch4_window7_224(**kwargs):
+    model = SwinTransformer(
+        embed_dim=128,
+        depths=[2, 2, 18, 2],
+        num_heads=[4, 8, 16, 32],
+        window_size=7,
+        drop_path_rate=0.5,
         **kwargs)
     return model
 

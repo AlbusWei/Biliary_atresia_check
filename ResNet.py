@@ -335,7 +335,6 @@ class ResNet(theseus_layer.TheseusLayer):
             x = self.fc(x)
         return x
 
-
 def ResNet50(pretrained=False, use_ssld=False, **kwargs):
     """
     ResNet50
@@ -348,6 +347,14 @@ def ResNet50(pretrained=False, use_ssld=False, **kwargs):
     """
     model = ResNet(
         config=NET_CONFIG["50"],
+        stages_pattern=MODEL_STAGES_PATTERN["ResNet50"],
+        version="vb",
+        **kwargs)
+    return model
+
+def ResNet152(pretrained=False, use_ssld=False, **kwargs):
+    model = ResNet(
+        config=NET_CONFIG["152"],
         stages_pattern=MODEL_STAGES_PATTERN["ResNet50"],
         version="vb",
         **kwargs)
