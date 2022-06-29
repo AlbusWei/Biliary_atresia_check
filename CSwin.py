@@ -512,3 +512,15 @@ def CSWinTransformer_tiny_224(**kwargs):
         droppath=0.2,
         **kwargs)
     return model
+
+
+def CSWinTransformer_base_224(**kwargs):
+    model = CSwinTransformer(
+        image_size=224,
+        embed_dim=96,
+        depths=[2, 4, 32, 2],
+        splits=[1, 2, 7, 7],
+        num_heads=[4, 8, 16, 32],
+        droppath=0.5,
+        **kwargs)
+    return model
