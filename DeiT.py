@@ -82,3 +82,16 @@ def DeiT_tiny_patch16_224(**kwargs):
         epsilon=1e-6,
         **kwargs)
     return model
+
+
+def DeiT_base_distilled_patch16_224(**kwargs):
+    model = DistilledVisionTransformer(
+        patch_size=16,
+        embed_dim=768,
+        depth=12,
+        num_heads=12,
+        mlp_ratio=4,
+        qkv_bias=True,
+        epsilon=1e-6,
+        **kwargs)
+    return model

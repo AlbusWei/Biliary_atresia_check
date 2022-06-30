@@ -20,6 +20,12 @@ model_dict = {
         "save_dir": './checkpoint/ViT',
         "pretrain": 'pretrain/ViT_base_patch16_224_pretrained.pdparams'
     },
+    "DeiT": {
+        "function": DeiT_base_distilled_patch16_224,
+        "save_dir": './checkpoint/DeiT',
+        "pretrain": 'pretrain/DeiT_base_distilled_patch16_224_pretrained.pdparams',
+        "final": "checkpoint/DeiT/final.pdparams"
+    },
     "SwinT": {
         "function": SwinTransformer_base_patch4_window7_224,
         "save_dir": './checkpoint/SwinT',
@@ -38,16 +44,19 @@ model_dict = {
 }
 
 
-def train_with_model(model_name, train_loader, valid_loader, BATCH_SIZE=16, EPOCHS=50, callback=None):
+def train_with_model(model_name, train_loader, valid_loader, resume_train=False,BATCH_SIZE=16, EPOCHS=100, callback=None):
     model_method = model_dict[model_name]["function"]
     save_dir = model_dict[model_name]["save_dir"]
 
     model = paddle.Model(model_method(class_num=2))
-    optimizer = paddle.optimizer.SGD(learning_rate=0.0001, parameters=model.parameters())
+    optimizer = paddle.optimizer.SGD(learning_rate=0.001, parameters=model.parameters())
 
-    # model.summary((1, 3, 224, 224))
+    model.summary((1, 3, 224, 224))
 
-    model.load(model_dict[model_name]["pretrain"], skip_mismatch=True)
+    if resume_train:
+        model.load(model_dict[model_name]["final"], skip_mismatch=True)
+    else:
+        model.load(model_dict[model_name]["pretrain"], skip_mismatch=True)
 
     model.prepare(optimizer, CrossEntropyLoss(), Accuracy())
     # 启动训练
@@ -61,6 +70,7 @@ def train_with_model(model_name, train_loader, valid_loader, BATCH_SIZE=16, EPOC
               save_dir=save_dir,
               callbacks=callback)
     return model
+
 
 
 def resnet_train(train_loader, valid_loader, save_dir='./checkpoint/ResNet152', callback=None):

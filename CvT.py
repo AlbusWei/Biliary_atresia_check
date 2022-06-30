@@ -408,7 +408,6 @@ class CvT(nn.Layer):
     def __init__(
             self,
             in_chans=3,
-            num_classes=1000,
             act_layer=QuickGELU,
             norm_layer=nn.LayerNorm,
             init="trunc_norm",
@@ -434,7 +433,7 @@ class CvT(nn.Layer):
             stride_q=[1, 1, 1],
     ):
         super().__init__()
-        self.num_classes = num_classes
+        self.num_classes = class_num
 
         self.num_stages = num_stages
         for i in range(self.num_stages):
@@ -475,8 +474,7 @@ class CvT(nn.Layer):
         self.cls_token = with_cls_token[-1]
 
         # Classifier head
-        self.head = nn.Linear(embed_dim,
-                              class_num) if class_num > 0 else Identity()
+        self.fc_cls = nn.Linear(embed_dim[-1], self.num_classes)
 
     def forward_features(self, x):
 
@@ -495,7 +493,7 @@ class CvT(nn.Layer):
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.head(x)
+        x = self.fc_cls(x)
         return x
 
 
