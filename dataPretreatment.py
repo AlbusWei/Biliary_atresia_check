@@ -48,6 +48,83 @@ def generate_dataset(dataset_path, mode="train"):
     print('finished!')
 
 
+def kfold_data_generate(dataset_path, mode="train", fold=5, ep=0):
+    # dataset_path = "/home/aistudio/work/original/"
+    csv_path = os.path.join(dataset_path, "label.csv")
+
+    trainf = open(os.path.join("work/kfold", 'train_list'+str(ep)+'.txt'), 'a')
+    valf = open(os.path.join("work/kfold", 'val_list'+str(ep)+'.txt'), 'a')
+    # testf = open(os.path.join("work/kfold", 'test_list'+str(fold)+'.txt'), 'a')
+
+    with open(csv_path) as f:
+        csv_file = csv.reader(f)
+        lines = list(csv_file)
+        lines = lines[1:]
+    random.shuffle(lines)
+    for idx, line in enumerate(lines):
+        # lineList = line[0:-1].split('\t',1)
+        imgname = line[0]
+        # imgname = imgname[0:-3] + "jpg"
+        value = 1^int(line[1])
+        imgdir = os.path.join(dataset_path, imgname)
+
+        if mode == "test":
+            continue
+            # testf.write((imgdir + ' ' + str(value) + '\n'))
+
+        else:
+            if idx % fold == ep:
+                valf.write((imgdir + ' ' + str(value) + '\n'))
+            else:
+                # 重采样
+                if value == 1:
+                    trainf.write((imgdir + ' ' + str(value) + '\n'))
+                    trainf.write((imgdir + ' ' + str(value) + '\n'))
+                trainf.write((imgdir + ' ' + str(value) + '\n'))
+
+    trainf.close()
+    valf.close()
+    # testf.close()
+    print('finished!')
+
+
+def kfold_dataset(fold=5, BATCH_SIZE=64, test_txt="work/test_list.txt"):
+    train_transform = Compose([RandomRotation(degrees=180),  # 随机旋转0到10度
+                               RandomHorizontalFlip(),  # 随机翻转
+                               ContrastTransform(0.1),  # 随机调整图片的对比度
+                               BrightnessTransform(0.1),  # 随机调整图片的亮度
+                               Grayscale(),  # 灰度化，因为超声图像颜色其实没意义
+                               # 换成图象处理的时候直接转灰度
+                               # Resize(size=(240,240)),#调整图片大小为240,240
+                               # RandomCrop(size=(224,224)),#从240大小中随机裁剪出224
+                               Resize(size=(224, 224)),
+                               Normalize(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], data_format='HWC'),
+                               # 归一化
+                               Transpose()])  # 对‘HWC’转换成‘CHW’
+
+    val_transform = Compose([Grayscale(),
+                             Resize(size=(224, 224)),
+                             Normalize(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], data_format='HWC'),
+                             Transpose()])
+
+    train_sets = []
+    val_sets = []
+    for i in range(fold):
+        train_txt = os.path.join("work/kfold", 'train_list'+str(i)+'.txt')
+        val_txt = os.path.join("work/kfold", 'val_list'+str(i)+'.txt')
+        trn_dateset = XChestDateset(train_txt, train_transform, 'train')
+        train_loader = DataLoader(trn_dateset, shuffle=True, batch_size=BATCH_SIZE)
+        val_dateset = XChestDateset(val_txt, val_transform, 'valid')
+        valid_loader = DataLoader(val_dateset, shuffle=False, batch_size=BATCH_SIZE)
+        train_sets.append(train_loader)
+        val_sets.append(valid_loader)
+
+    test_dateset = XChestDateset(test_txt, val_transform, 'valid')
+    test_loader = DataLoader(test_dateset, shuffle=False, batch_size=BATCH_SIZE)
+
+    return train_sets, val_sets, test_loader
+
+
 def generate_data_files(train_path_list, test_path_list, save_dir="work/"):
     for i in train_path_list:
         generate_dataset(i, "train")
