@@ -1,23 +1,21 @@
-import paddle
 import os
-from ResNet import ResNet50, ResNet152
-from SwinT import swin_tiny, SwinTransformer_base_patch4_window7_224
-from CvT import cvt_21_224
-from CSwin import CSWinTransformer_tiny_224, CSWinTransformer_base_224
-from ViT import ViT_small_patch16_224, ViT_base_patch16_224
-from DeiT import DeiT_tiny_patch16_224
-from dataPretreatment import kfold_data_generate, kfold_dataset, generate_dataset
-from paddle.nn import CrossEntropyLoss
-from paddle.metric import Accuracy
-from senet import SE_ResNeXt50_vd_32x4d, SENet154_vd
-import cv2
-from PIL import Image
+
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.preprocessing import label_binarize
-from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score, confusion_matrix, roc_curve, roc_auc_score, auc
-from sklearn.metrics import classification_report
+import paddle
 import seaborn as sns
+from paddle.metric import Accuracy
+from paddle.nn import CrossEntropyLoss
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix, roc_curve, auc
+
+from CSwin import CSWinTransformer_base_224
+from CvT import cvt_21_224
+from ResNet import ResNet152
+from SwinT import SwinTransformer_base_patch4_window7_224
+from ViT import ViT_base_patch16_224
+from dataPretreatment import kfold_data_generate, kfold_dataset
+from senet import SE_ResNeXt50_vd_32x4d, SENet154_vd
 
 model_dict = {
     "ResNet152": {
@@ -119,8 +117,8 @@ def main():
         for i in train_path_list:
             kfold_data_generate(i, "train", ep=ep)
 
-    for i in test_path_list:
-        generate_dataset(i, "test")
+    # for i in test_path_list:
+    #     generate_dataset(i, "test")
 
     train_loaders, val_loaders, test_loader = kfold_dataset()
     callback = paddle.callbacks.VisualDL(log_dir='log/')
@@ -154,8 +152,8 @@ def main():
         # _y[1] += y[1]
         # y[0]/=6
         # y[1]/=6
-        y[0] /= 3
-        y[1] /= 3
+        y[0] /= len(model_list)
+        y[1] /= len(model_list)
         out = np.argmax(_y)
         y_score.append(_y)
         pre_label.append(out)
